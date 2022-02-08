@@ -1,5 +1,23 @@
 """
-Schema for files
+This script goes through all the earnings call transcript txt files for the year
+specified by the argument passed in when this script is run.
+
+It parses each transcript txt file, and writes the parsed Python dictionary to a JSON file.
+The JSON files are saved to the folders
+/data/SCRIPTS/earnings_calls_scripts/parsed_transcripts/parsed_transcripts_2019,
+/data/SCRIPTS/earnings_calls_scripts/parsed_transcripts/parsed_transcripts_2020,
+/data/SCRIPTS/earnings_calls_scripts/parsed_transcripts/parsed_transcripts_2021,
+depending on what argument is passed in for the year when the script is run.
+
+To run script:
+cd /data/SCRIPTS/earnings_calls_scripts
+python3 parsing_earnings_calls.py 2019
+python3 parsing_earnings_calls.py 2020
+python3 parsing_earnings_calls.py 2021
+"""
+
+"""
+Schema for JSON files
 ----------------
 filename : string
 date : string
@@ -188,11 +206,11 @@ def parse_transcript(filename):
     parse_dict["filename"] = filename
 
     # Quarter / Full Year / FY / Half Year and/or company are in the header
-    call_title_regex_quarter = r"(Q[1-4] 20[12][0129]) (.+) (?:Earnings|Pre-Recorded|Business Update|Post-Earnings|Pre-recorded|Pre Recorded|Year)"
-    call_title_regex_year = r"(Full Year 20[12][0129]) (.+) (?:Earnings|Pre-Recorded|Business Update|Post-Earnings|Pre-recorded|Pre Recorded|Year)"
-    call_title_regex_company_quarter = r"(.+) (Q[1-4] 20[12][0129]) Financial"
-    call_title_regex_company_quarter_year = r"(.+) (Q[1-4] 20[12][0129]) Estimated Results and (FY 20[12][0129]) Outlook Conference Call"
-    call_title_regex_half_year = r"(Half Year 20[12][0129]) (.+) (?:Earnings|Pre-Recorded|Business Update|Post-Earnings|Pre-recorded|Pre Recorded|Year)"
+    call_title_regex_quarter = r"(Q[1-4] 20[12][01289]) (.+) (?:Earnings|Pre-Recorded|Business Update|Post-Earnings|Pre-recorded|Pre Recorded|Year)"
+    call_title_regex_year = r"(Full Year 20[12][01289]) (.+) (?:Earnings|Pre-Recorded|Business Update|Post-Earnings|Pre-recorded|Pre Recorded|Year)"
+    call_title_regex_company_quarter = r"(.+) (Q[1-4] 20[12][01289]) Financial"
+    call_title_regex_company_quarter_year = r"(.+) (Q[1-4] 20[12][01289]) Estimated Results and (FY 20[12][01289]) Outlook Conference Call"
+    call_title_regex_half_year = r"(Half Year 20[12][01289]) (.+) (?:Earnings|Pre-Recorded|Business Update|Post-Earnings|Pre-recorded|Pre Recorded|Year)"
     call_title_regex_company_only = r"(.+) (?:Earnings|Pre-Recorded|Business Update|Post-Earnings|Pre-recorded|Pre Recorded|Year)"
     matches_quarter = re.match(call_title_regex_quarter, lines[5])
     matches_year = re.match(call_title_regex_year, lines[5])
@@ -282,9 +300,9 @@ def parse_transcript(filename):
 
 # to run script:
 # cd /data/SCRIPTS/earnings_calls_scripts
-# python3 parsing_earnings_calls.py 2021
-# python3 parsing_earnings_calls.py 2020
 # python3 parsing_earnings_calls.py 2019
+# python3 parsing_earnings_calls.py 2020
+# python3 parsing_earnings_calls.py 2021
 if __name__ == "__main__":
     # parse all transcripts in folder for given year (ex: /data/TRANSCRIPTS_2021)
     transcript_year = sys.argv[1]
