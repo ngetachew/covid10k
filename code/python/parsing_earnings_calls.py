@@ -177,6 +177,17 @@ def parse_q_and_a(q_and_a_lines, corp_participants_list):
     turn_dict = [turn._asdict() for turn in q_and_a_turns]
     return turn_dict
 
+def did_corp_participants_read_questions(parsed_q_and_a):
+    """
+    Takes parsed Q&A section as a list of speaker turns
+    Returns True if corporate participants read Q&A questions; False otherwise.
+    """
+    for turn in parsed_q_and_a:
+        if not turn["is_operator"] and not turn["is_corporate_participant"]:
+            # the speaker of this turn was a conference call participant (a non-corporate participant)
+            return False
+    return True
+
 def convert_date_to_mm_dd_yyyy(date):
     """
     Takes in a date in the format MONTH DD, YYYY
@@ -311,7 +322,9 @@ def parse_transcript(filename):
     parse_dict["participants"]["corporate_participants"] = corp_participants_list
     parse_dict["participants"]["conference_call_participants"] = parse_participants(conf_participants_lines)
     parse_dict["presentation"] = parse_presentation(presentation_lines, corp_participants_list)
-    parse_dict["questions_and_answers"] = parse_q_and_a(question_and_answer_lines, corp_participants_list)
+    parsed_q_and_a = parse_q_and_a(question_and_answer_lines, corp_participants_list)
+    parse_dict["questions_and_answers"] = parsed_q_and_a
+    parse_dict["corporate_participants_read_questions"] = did_corp_participants_read_questions(parsed_q_and_a)
 
     return parse_dict
 
