@@ -20,17 +20,16 @@ python3 parsing_earnings_calls.py 2021
 Schema for JSON files
 ----------------
 filename : string
-date : string
-quarter : string
 company : string
+quarter : string
+half-year : string
+year : string
+date : string
 participants : dict
   corporate_participants : [string]
   conference_call_participants : [string]
 presentation : [SpeakerTurn]
-questions_and_answers : 
-  question : SpeakerTurn
-  operator_instructions : string
-  answers : [SpeakerTurn]
+questions_and_answers : [SpeakerTurn]
 """
 from collections import namedtuple
 import json
@@ -38,12 +37,12 @@ import re
 import sys
 import os
 
-
-SpeakerTurn = namedtuple("SpeakerTurn", ["speaker", "text", "is_operator", "index"])
+SpeakerTurn = namedtuple("SpeakerTurn", ["speaker", "text", "is_operator", "is_corporate_participant", "index"])
 Participant = namedtuple("Participant", ["name", "title", "company_division"])
 
 
 def parse_participants(participant_lines):
+    """Parses either the corporate participants section or the conference call participants section"""
     participants = []
     for part_idx in range(0, len(participant_lines), 2):
         if '*' not in participant_lines[part_idx]:
@@ -89,24 +88,24 @@ def parse_participants(participant_lines):
     return participants
 
 
-def split_out_turns(lines):
+def split_out_turns(lines, corp_participants_list):
+    """Separates lines into a list of speaker turns"""
     turns = []
     seen_line = False
     current_turn = [lines[0]]
     for line in lines[1:]:
         if re.match(r'^-----', line) and line.strip().endswith("-"):
             if seen_line:
-                turns.append(parse_speaker_turn(current_turn))
+                turns.append(parse_speaker_turn(current_turn, corp_participants_list))
                 current_turn = []
             seen_line = not(seen_line)
         current_turn.append(line)
-    turns.append(parse_speaker_turn(current_turn))
+    turns.append(parse_speaker_turn(current_turn, corp_participants_list))
     return turns
 
 
-# Parse out speaker turns
-def parse_speaker_turn(speaker_lines):
-    # For each speaker
+def parse_speaker_turn(speaker_lines, corp_participants_list):
+    """Parse out one speaker turn for one speaker"""
     speaker_name_line_index = 1
     index_regex = r'\[(\d+)\]'
     index_match = re.search(index_regex, speaker_lines[speaker_name_line_index])
@@ -140,65 +139,49 @@ def parse_speaker_turn(speaker_lines):
             speaker_text = "".join(l.lstrip() for l in speaker_lines[2+speaker_name_line_index:])
         
         is_operator = speaker.startswith("Operator")
-        return SpeakerTurn(speaker, speaker_text, is_operator, index)
+        is_corporate_participant = in_corporate_participants_list(speaker, corp_participants_list)
+        return SpeakerTurn(speaker, speaker_text, is_operator, is_corporate_participant, index)
 
-    return SpeakerTurn("", "", False, -1)
+    return SpeakerTurn("", "", False, False, -1)
 
-# Parse presentation lines
-def parse_presentation(presentation_lines):
-    return [t._asdict() for t in split_out_turns(presentation_lines)]
+def in_corporate_participants_list(speaker, corporate_participants_list):
+    """
+    Returns True if speaker is a corporate participant (is in the parsed corporate_participants_list);
+    Returns False otherwise.
+    """
+    # speaker = speaker_name + ",  " + speaker_company + " - " + speaker_title
+    # speaker_info_list = re.split(', | - ', speaker)
+    speaker_name_companyandtitle = speaker.split(",")
+    speaker_name = speaker_name_companyandtitle[0]
 
-def parse_q_and_a_round(round_turns, has_operator):
-    operator_instructions = round_turns[0]
-    operator_instructions_dict = operator_instructions._asdict()
-    if not has_operator:
-        operator_instructions_dict = {}
-        question = round_turns[0]
-        answers = round_turns[1:]
-        question_dict = question._asdict()
-        answers_dict = [a._asdict() for a in answers]
-    elif len(round_turns) == 1:
-        question_dict = {}
-        answers_dict = {}
-    else:
-        question = round_turns[1]
-        answers = round_turns[2:]
-        question_dict = question._asdict()
-        answers_dict = [a._asdict() for a in answers]
-    return {
-        "operator_instructions": operator_instructions_dict,
-        "question": question_dict,
-        "answers": answers_dict
-    }
+    speaker_name = speaker_name.strip()
+    for corp_participant in corporate_participants_list:
+        # TODO: use Levenshtein Distance — what threshold to use? 3?
+        if speaker_name == corp_participant['name']:
+            return True
+    return False
 
+def parse_presentation(presentation_lines, corp_participants_list):
+    """
+    Parses presentation lines
+    """
+    return [t._asdict() for t in split_out_turns(presentation_lines, corp_participants_list)]
 
-# Parse questions and answers
-def parse_q_and_a(q_and_a_lines):
+def parse_q_and_a(q_and_a_lines, corp_participants_list):
+    """
+    Parses questions and answers section
+    """
     if q_and_a_lines == []:
         return []
 
-    q_and_a_turns = split_out_turns(q_and_a_lines)
-    has_operator = True # assume there's operator for Q&A section
-    operator_indices = [i for (i, t) in enumerate(q_and_a_turns) if t.is_operator]
-    if operator_indices:
-        question_chunks = [q_and_a_turns[operator_indices[i]:operator_indices[i+1]] for i in range(len(operator_indices) - 1)]
-    else:
-        # case where there's no operator for Q&A section
-        has_operator = False
-        question_chunks = [q_and_a_turns]
-    
-    if question_chunks == []:
-        # case where the operator did speak during Q&A
-        # but may have only given 1 concluding remark
-        # we can't use that to determine whether questions were asked
-        has_operator = False
-        question_chunks = [q_and_a_turns]
-        
-    return [parse_q_and_a_round(chunk, has_operator) for chunk in question_chunks]
-
+    q_and_a_turns = split_out_turns(q_and_a_lines, corp_participants_list)
+    turn_dict = [turn._asdict() for turn in q_and_a_turns]
+    return turn_dict
 
 def parse_transcript(filename):
-    """Parses a single earnings call transcript."""
+    """
+    Parses a single earnings call transcript.
+    """
     with open(filename) as f:
         lines = [line for line in f]
     
@@ -291,10 +274,11 @@ def parse_transcript(filename):
         else:
             corp_participants_lines = []
 
-    parse_dict["participants"]["corporate_participants"] = parse_participants(corp_participants_lines)
+    corp_participants_list = parse_participants(corp_participants_lines)
+    parse_dict["participants"]["corporate_participants"] = corp_participants_list
     parse_dict["participants"]["conference_call_participants"] = parse_participants(conf_participants_lines)
-    parse_dict["presentation"] = parse_presentation(presentation_lines)
-    parse_dict["questions_and_answers"] = parse_q_and_a(question_and_answer_lines)
+    parse_dict["presentation"] = parse_presentation(presentation_lines, corp_participants_list)
+    parse_dict["questions_and_answers"] = parse_q_and_a(question_and_answer_lines, corp_participants_list)
 
     return parse_dict
 
