@@ -40,7 +40,6 @@ import os
 SpeakerTurn = namedtuple("SpeakerTurn", ["speaker", "text", "is_operator", "is_corporate_participant", "index"])
 Participant = namedtuple("Participant", ["name", "title", "company_division"])
 
-
 def parse_participants(participant_lines):
     """Parses either the corporate participants section or the conference call participants section"""
     participants = []
@@ -178,6 +177,40 @@ def parse_q_and_a(q_and_a_lines, corp_participants_list):
     turn_dict = [turn._asdict() for turn in q_and_a_turns]
     return turn_dict
 
+def convert_date_to_mm_dd_yyyy(date):
+    """
+    Takes in a date in the format MONTH DD, YYYY
+    Converts it to MM/DD/YYYY format
+    """
+    month_day, year = date.split(",")
+    year = year.strip()
+    month, day = month_day.split(" ")
+    if month == "JANUARY":
+        month = "01"
+    elif month == "FEBRUARY":
+        month = "02"
+    elif month == "MARCH":
+        month = "03"
+    elif month == "APRIL":
+        month = "04"
+    elif month == "MAY":
+        month = "05"
+    elif month == "JUNE":
+        month = "06"
+    elif month == "JULY":
+        month = "07"
+    elif month == "AUGUST":
+        month = "08"  
+    elif month == "SEPTEMBER":
+        month = "09"  
+    elif month == "OCTOBER":
+        month = "10"  
+    elif month == "NOVEMBER":
+        month = "11"  
+    elif month == "DECEMBER":
+        month = "12"  
+    return month + "/" + day + "/" + year
+
 def parse_transcript(filename):
     """
     Parses a single earnings call transcript.
@@ -235,7 +268,7 @@ def parse_transcript(filename):
     # Date is in the header, too
     date_time_regex = r"([A-Z]+ [0-9]+, 20[12][019])"
     matches = re.match(date_time_regex, lines[6])
-    parse_dict["date"] = matches.group(0)
+    parse_dict["date"] = convert_date_to_mm_dd_yyyy(matches.group(0))
 
     # Split lines between presentation and Q&A
     presentation_index = lines.index("Presentation\n")
