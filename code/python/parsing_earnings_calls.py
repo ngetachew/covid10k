@@ -32,6 +32,7 @@ presentation : [SpeakerTurn]
 questions_and_answers : [SpeakerTurn]
 """
 from collections import namedtuple
+from nltk.metrics import edit_distance
 import json
 import re
 import sys
@@ -148,15 +149,16 @@ def in_corporate_participants_list(speaker, corporate_participants_list):
     Returns True if speaker is a corporate participant (is in the parsed corporate_participants_list);
     Returns False otherwise.
     """
-    # speaker = speaker_name + ",  " + speaker_company + " - " + speaker_title
-    # speaker_info_list = re.split(', | - ', speaker)
     speaker_name_companyandtitle = speaker.split(",")
     speaker_name = speaker_name_companyandtitle[0]
 
     speaker_name = speaker_name.strip()
     for corp_participant in corporate_participants_list:
-        # TODO: use Levenshtein Distance — what threshold to use? 3?
-        if speaker_name == corp_participant['name']:
+        # use NLTK's edit_distance function to compute Levenshtein Distance
+        # between current speaker's name and corporate participant's name
+        # if the difference between the two strings is < 3, we'll count them as equivalent
+        if edit_distance(speaker_name, corp_participant["name"]) < 3:
+            # consider current speaker to be this corporate participant
             return True
     return False
 
