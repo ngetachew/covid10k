@@ -30,6 +30,7 @@ participants : dict
   conference_call_participants : [string]
 presentation : [SpeakerTurn]
 questions_and_answers : [SpeakerTurn]
+corporate_participants_read_questions : bool
 """
 from collections import namedtuple
 from nltk.metrics import edit_distance
@@ -326,7 +327,12 @@ def parse_transcript(filename):
     parse_dict["presentation"] = parse_presentation(presentation_lines, corp_participants_list)
     parsed_q_and_a = parse_q_and_a(question_and_answer_lines, corp_participants_list)
     parse_dict["questions_and_answers"] = parsed_q_and_a
-    parse_dict["corporate_participants_read_questions"] = did_corp_participants_read_questions(parsed_q_and_a)
+    
+    if parsed_q_and_a == []:
+        # no q&a section
+        parse_dict["corporate_participants_read_questions"] = False
+    else:
+        parse_dict["corporate_participants_read_questions"] = did_corp_participants_read_questions(parsed_q_and_a)
 
     return parse_dict
 
