@@ -2,7 +2,7 @@
 This script goes through all the parsed transcript JSON files for the years specified in
 transcript_years = ['2019', '2020', '2021'] below.
 
-It determines each transcript's filename, ticker (i.e. ULTA.OQ), company, quarter, half-year, and year.
+It determines each transcript's filename, ticker (i.e. ULTA.OQ), company, date, quarter, half-year, year, and whether corporate_participants_read_questions.
 And writes that company metadata to a CSV file (/data/SCRIPTS/earnings_calls_scripts/earnings_calls_metadata.csv)
 where each line corresponds to one earnings call transcript for one company.
 
@@ -17,15 +17,17 @@ import csv
 
 def read_transcript_json_file(transcript_json_filename):
     """ takes in the JSON file for a single earnings call transcript
-        returns a list of the filename, ticker, company, quarter, half_year, year for that transcript
+        returns a list of the filename, ticker, company, date, quarter, half_year, year, whether corporate_participants_read_questions for that transcript
     """
     f = open(transcript_json_filename) # open JSON file
     transcript_json = json.load(f)     # load JSON into Python dictionary
 
     # transcript_json["filename"] will look something like /data/TRANSCRIPTS_2019/2019-Feb-12-VNO.N-139861747920-transcript.txt
+    # but all we want is the filename without the path
     filename = transcript_json["filename"].split("/")[3]
     ticker = filename.split("-")[3]
     company = transcript_json["company"]
+    date = transcript_json["date"]
     if transcript_json["quarter"]:
         quarter = transcript_json["quarter"]
     else:
@@ -40,16 +42,17 @@ def read_transcript_json_file(transcript_json_filename):
         year = transcript_json["year"]
     else:
         year = ""
-    return [filename, ticker, company, quarter, half_year, year]
+    corporate_participants_read_questions = transcript_json["corporate_participants_read_questions"]
+    return [filename, ticker, company, date, quarter, half_year, year, corporate_participants_read_questions]
 
 def write_list_of_lists_to_csv(list_of_lists, csv_path):
     """ takes in a list of lists, where each inner list represents the metadata for one earnings call
         and creates a csv file called at the path specified by csv_path with one line for each earnings call,
-        formatted as filename, ticker, company, quarter, half-year, year
+        formatted as filename, ticker, company, date, quarter, half-year, year, whether corporate_participants_read_questions
     """
     with open(csv_path, 'w', newline='') as csvfile:
         csvwriter = csv.writer(csvfile, delimiter = ',')
-        csvwriter.writerow(['Filename', 'Ticker', 'Company', 'Quarter', 'Half-Year', 'Year'])
+        csvwriter.writerow(['Filename', 'Ticker', 'Company', 'Date', 'Quarter', 'Half-Year', 'Year', 'Corporate Participants Read Questions'])
         for list in list_of_lists:
             csvwriter.writerow(list)
 
