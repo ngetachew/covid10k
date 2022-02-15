@@ -14,6 +14,7 @@ python3 parsing_earnings_calls_metadata.py
 import os
 import json
 import csv
+from collections import defaultdict
 
 def read_transcript_json_file(transcript_json_filename):
     """ takes in the JSON file for a single earnings call transcript
@@ -56,6 +57,22 @@ def write_list_of_lists_to_csv(list_of_lists, csv_path):
         for list in list_of_lists:
             csvwriter.writerow(list)
 
+def find_time_distribution_of_transcripts_with_flag(transcript_metadata_lists, flag):
+    """ takes in a list of lists, where each inner list represents the metadata for one earnings call
+        and also takes in a boolean flag we want to count the True occurrences of.
+        returns two dictionaries:
+            first dictionary shows the distribution of transcripts with that flag over the months,
+            and second dictionary shows the distribution of transcripts with that flag over the years
+    """
+    flag_month_dict = defaultdict(int)
+    flag_year_dict = defaultdict(int)
+    for filename, ticker, company, date, quarter, half_year, year, corporate_participants_read_questions in transcript_metadata_lists:
+        if eval(flag):
+            month, day, year = date.split("/")
+            flag_month_dict[month + "/" + year] += 1
+            flag_year_dict[year] += 1
+    return flag_month_dict, flag_year_dict
+
 # to run script:
 # cd /data/SCRIPTS/earnings_calls_scripts
 # python3 parsing_earnings_calls_metadata.py
@@ -70,6 +87,14 @@ if __name__ == "__main__":
             print(transcript_json_filename)
             company_info = read_transcript_json_file(transcript_json_folder + '/' + transcript_json_filename)
             transcript_metadata_lists.append(company_info)
+
+    # create dictionary to count num of transcripts where corporate participants read questions for each month,
+    # and also dictionary to count that for each year
+    corp_participants_read_questions_month_dict, corp_participants_read_questions_year_dict = find_time_distribution_of_transcripts_with_flag(transcript_metadata_lists, "corporate_participants_read_questions")
+    print(corp_participants_read_questions_month_dict)
+    print(corp_participants_read_questions_year_dict)
+    print(sum(corp_participants_read_questions_month_dict.values()))
+    print(sum(corp_participants_read_questions_year_dict.values()))
 
     # write transcript_metadata_lists list of lists to csv at /data/SCRIPTS/earnings_calls_scripts/earnings_calls_metadata.csv
     write_list_of_lists_to_csv(transcript_metadata_lists, '/data/SCRIPTS/earnings_calls_scripts/earnings_calls_metadata.csv')
