@@ -11,6 +11,7 @@ depending on what argument is passed in for the year when the script is run.
 
 To run script:
 cd /data/SCRIPTS/earnings_calls_scripts
+source venv-econ-text-michelle-lum/bin/activate
 python3 parsing_earnings_calls.py 2019
 python3 parsing_earnings_calls.py 2020
 python3 parsing_earnings_calls.py 2021
@@ -116,7 +117,6 @@ def parse_speaker_turn(speaker_lines, corp_participants_list):
     if index_match:
         index = int(index_match.group(1))
         if ";" in speaker_lines[speaker_name_line_index]:
-            # print(speaker_lines[speaker_name_line_index])
             speaker_info = speaker_lines[speaker_name_line_index].rstrip(" ]123[4567890;,-\n").split(";")
             if len(speaker_info) == 3:
                 speaker_name, speaker_company, speaker_title = speaker_info
@@ -141,7 +141,9 @@ def parse_speaker_turn(speaker_lines, corp_participants_list):
         
         is_operator = speaker.startswith("Operator")
         is_corporate_participant = in_corporate_participants_list(speaker, corp_participants_list)
-        return SpeakerTurn(speaker, speaker_text, is_operator, is_corporate_participant, index)
+        # replace unwanted new line characters ("\n") from speaker_text with a space " " so that sentences don't get glued next to each other
+        # then strip speaker_text in case that added an extra space at the end of speaker_text
+        return SpeakerTurn(speaker, speaker_text.replace("\n", " ").strip(), is_operator, is_corporate_participant, index)
 
     return SpeakerTurn("", "", False, False, -1)
 
