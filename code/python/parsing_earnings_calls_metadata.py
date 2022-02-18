@@ -48,7 +48,7 @@ def read_transcript_json_file(transcript_json_filename):
 
 def write_list_of_lists_to_csv(list_of_lists, csv_path):
     """ takes in a list of lists, where each inner list represents the metadata for one earnings call
-        and creates a csv file called at the path specified by csv_path with one line for each earnings call,
+        and creates a csv file at the path specified by csv_path with one line for each earnings call,
         formatted as filename, ticker, company, date, quarter, half-year, year, whether corporate_participants_read_questions
     """
     with open(csv_path, 'w', newline='') as csvfile:
