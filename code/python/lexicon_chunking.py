@@ -28,7 +28,7 @@ file_type = '10KQ'
 
 
 #Get lexicon and filter the escape chars
-lexicon = [item for sublist in list(csv.reader(open('core_lexicon.csv'))) for item in sublist]
+lexicon = [item for sublist in list(csv.reader(open('../../outputs/core_lexicon.csv'))) for item in sublist]
 lex = set(lexicon)
 lex.remove('')
 print('lexicon loaded')
