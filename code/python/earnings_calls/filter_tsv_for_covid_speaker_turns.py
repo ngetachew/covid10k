@@ -98,15 +98,19 @@ if __name__ == "__main__":
     
     # COVID lexicon word types.
     # Each speaker turn we retain should contain at least one of these types.
-    covid_lexicon = ["epidemic", "coronavirus", "outbreak", "corona", "pandemic", "virus", "contagious", "wuhan", "covid", "strain", "outbreaks", "communicable", "quarantines", "epidemics", "pandemics", "infectious", "respiratory", "distancing", "infected", "pathogenic", "quarantine", "viral", "antiviral", "infection", "infections", "vaccine", "cov", "shutdowns", "strains", "vaccines", "vaccination", "viruses", "mrna", "transmitted", "mutated", "masks"]
+    covid_lexicon = ["coronavirus", "epidemic", "pandemicthe", "corona", "pandemicon", "pandemic", "pandemicin", "covid-19the", "covid-19in", "covid-19on", "contentscovid-19", "covid-19", "cov-2", "sars-cov-2", "covid19", "definitioncovid-19", "epidemics", "covid", "pandemics", "pre-pandemic", "coronaviruses", "pandemic-related", "pre-covid", "covid-related"]
 
     # Filter the TSV rows for COVID speaker turns.
     covid_tsv_rows, covid_word_types_seen_dict = filter_for_covid_speaker_turns(tsv_rows, covid_lexicon)
     # As a check on our filtering, print dictionary to count how many times each COVID word type has been seen.
     print()
     print(len(covid_word_types_seen_dict), "COVID word types seen")
-    print()
     print(covid_word_types_seen_dict)
+    print()
+
+    print("number of speaker turns in TSV of only core COVID corporate speaker turns: ", len(covid_tsv_rows))
+    print("number of speaker turns in TSV of all corporate speaker turns: ", len(tsv_rows))
+    print("% of speaker turns retained after filtering for COVID words: ", len(covid_tsv_rows) / len(tsv_rows))
 
     # Save a version of the TSV with only the COVID speaker turns.
-    write_list_of_lists_to_tsv(covid_tsv_rows, '/data/SCRIPTS/earnings_calls_scripts/earnings_calls_multiword_phrases_covid_speaker_turns.tsv')
+    write_list_of_lists_to_tsv(covid_tsv_rows, '/data/SCRIPTS/earnings_calls_scripts/earnings_calls_multiword_phrases_core_covid_speaker_turns.tsv')
