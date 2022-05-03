@@ -73,6 +73,7 @@ def filter_for_covid_speaker_turns(tsv_rows, covid_lexicon):
             if is_covid_speaker_turn:
                 # Use curr_speaker_text, not curr_speaker_tokens here, so that the speaker turn text will be a complete string, not a list of token strings, in the output TSV file.
                 updated_tsv_rows.append([curr_id, curr_filename, curr_speaker_text])
+                break # just need to add this row once, once we know it has at least one COVID word type
     
         # print statement to display progress
         print("filter_for_covid_speaker_turns", curr_filename)
@@ -113,4 +114,4 @@ if __name__ == "__main__":
     print("% of speaker turns retained after filtering for COVID words: ", len(covid_tsv_rows) / len(tsv_rows))
 
     # Save a version of the TSV with only the COVID speaker turns.
-    write_list_of_lists_to_tsv(covid_tsv_rows, '/data/SCRIPTS/earnings_calls_scripts/earnings_calls_multiword_phrases_core_covid_speaker_turns.tsv')
+    write_list_of_lists_to_tsv(covid_tsv_rows, '/data/SCRIPTS/earnings_calls_scripts/earnings_calls_multiword_phrases_core_covid_speaker_turns_no_duplicates.tsv')
