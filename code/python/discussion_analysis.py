@@ -10,6 +10,9 @@ import pandas as pd
 #import extractor if all else fails
 from sec_api import ExtractorApi
 
+#import OS library
+import os
+
 def get_management_from_html(file):
 
     #open the actual file
@@ -106,3 +109,27 @@ def get_management_from_html(file):
     item_7_text = item_7_content.get_text("\n\n")
 
     return item_7_text
+
+def to_txt(file_name, file_output):
+    text = get_management_from_html(file_name)
+
+    with open(file_output,"w") as f:
+        f.write(text)
+    
+
+if __name__ == "__main__":
+
+    counter = 0
+    
+    starting_dir = "/home/CAMPUS/diaa2019/data/DATA_2019/10-K_2019"
+
+    ending_dir = "/home/CAMPUS/diaa2019/data/MANAGEMENT_DISCUSSION"
+
+    file_names = os.listdir(starting_dir)
+
+    for file in file_names:
+        if counter > 10:
+            break
+        to_txt(os.path.join(starting_dir,file), os.path.join(ending_dir,file))
+        counter += 1
+        
