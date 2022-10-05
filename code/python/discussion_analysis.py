@@ -49,7 +49,7 @@ def get_management_from_html(file):
 
 
     # Write the regex
-    regex = re.compile(r'(>Item(\s|&#160;|&nbsp;)(7A|7)\.{0,1})|(ITEM\s(7A|7))')
+    regex = re.compile(r'(>Item(\s|&#160;|&nbsp;)(7A|7)\.{0,1})|(ITEM(\s|&#160;|&nbsp;)(7A|7)\.{0,1})')
 
     # Use finditer to math the regex
     matches = regex.finditer(document['10-K'])
