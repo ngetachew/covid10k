@@ -7,9 +7,6 @@ import re
 #import pandas
 import pandas as pd
 
-#import extractor if all else fails
-from sec_api import ExtractorApi
-
 #import OS library
 import os
 
