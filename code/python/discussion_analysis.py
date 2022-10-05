@@ -52,6 +52,10 @@ def get_management_from_html(file):
     # Use finditer to math the regex
     matches = regex.finditer(document['10-K'])
 
+    # Write a for loop to print the matches
+    for match in matches:
+        print(match)
+
     # Matches
     matches = regex.finditer(document['10-K'])
 
@@ -120,7 +124,7 @@ if __name__ == "__main__":
     
     starting_dir = "/home/CAMPUS/diaa2019/data/DATA_2019/10-K_2019"
 
-    ending_dir = "/home/CAMPUS/diaa2019/data/MANAGEMENT_DISCUSSION"
+    ending_dir = "/home/CAMPUS/diaa2019/data/MANAGEMENT_DISCUSSION_2019"
 
     file_names = os.listdir(starting_dir)
 
