@@ -12,6 +12,8 @@ import os
 
 def get_management_from_html(file):
 
+    print(file)
+
     #open the actual file
     with open(file) as f:
             page = f.read()
@@ -129,6 +131,7 @@ if __name__ == "__main__":
     file_names = os.listdir(starting_dir)
 
     for file in file_names:
+        print(counter)
         if counter > 10:
             break
         to_txt(os.path.join(starting_dir,file), os.path.join(ending_dir,file))
