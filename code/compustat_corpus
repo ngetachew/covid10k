@@ -1,3 +1,4 @@
+AUTHOR: Michelle Zemel
 clear
 
 *NOTES: The SEC data is unique by cik date.  The compustat data is unique by gvkey data.  First, create a map of cik date to gvkey date. This is to add the gvkey variable to the metadata file
