@@ -123,6 +123,7 @@ def to_txt(file_name, file_output):
 if __name__ == "__main__":
 
     counter = 0
+    failures = 0
     
     starting_dir = "/home/CAMPUS/diaa2019/data/DATA_2019/10-K_2019"
 
@@ -131,9 +132,11 @@ if __name__ == "__main__":
     file_names = os.listdir(starting_dir)
 
     for file in file_names:
-        print(counter)
-        if counter > 10:
-            break
-        to_txt(os.path.join(starting_dir,file), os.path.join(ending_dir,file))
-        counter += 1
-        
+        try:
+            print(counter)
+            if counter > 10:
+                break
+            to_txt(os.path.join(starting_dir,file), os.path.join(ending_dir,file))
+            counter += 1
+        except:
+            failures = failures + 1
