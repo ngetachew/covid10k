@@ -1,0 +1,74 @@
+/* This is a script which can be used to merge lexicon proportions data to Compustat information.
+   
+   Import files: 
+   
+   1. lexicon proportions for relevant years (must include filename in CIK-10K/Q-YYYYMMDD.txt format)
+   2. Compustat-filename linked data
+   
+   Output files: 
+   
+   1. Lexicon proportion file with compiled information for all relevant years
+   2. Compustat-filename-proportion linked data
+   
+   Merge variables: 
+   
+   filename 
+    
+*/
+
+// Import in proportions files, save in stata format
+clear
+import delimited "/Users/eloiseburtis/Desktop/Current COVID Files/lp_total_2019.csv", stringcols(2)
+save "/Users/eloiseburtis/Desktop/lp_total_2019.dta"
+
+clear 
+import delimited "/Users/eloiseburtis/Desktop/Current COVID Files/lp_total_2020.csv", stringcols(2)
+save "/Users/eloiseburtis/Desktop/lp_total_2020.dta"
+
+clear
+import delimited "/Users/eloiseburtis/Desktop/Current COVID Files/lp_total_2021.csv", stringcols(2)
+save "/Users/eloiseburtis/Desktop/lp_total_2021.dta"
+
+
+// Create a new file that contains all of the proportion data
+
+clear
+use "/Users/eloiseburtis/Desktop/lp_total_2019.dta"
+append using "/Users/eloiseburtis/Desktop/lp_total_2020.dta"
+append using "/Users/eloiseburtis/Desktop/lp_total_2021.dta"
+save "/Users/eloiseburtis/Desktop/lp_total.dta"
+
+//Prepare new file with all proportions for merging
+clear
+use "/Users/eloiseburtis/Desktop/lp_total.dta"
+gen filename = substr(v1,5,strlen(v1))
+order filename, first
+drop v1
+save "/Users/eloiseburtis/Desktop/lp_total.dta", replace
+bysort filename: gen count=_N
+tab count
+br if count==2
+duplicates drop //there was only one duplicate and it was identical, likely a file storage issue
+drop count
+save "/Users/eloiseburtis/Desktop/lp_total.dta", replace
+
+//Import in the compustat metadata
+clear
+import excel "/Users/eloiseburtis/Desktop/Covid10K/metadata/MatchedToCompustat_10_15_21.xlsx", firstrow
+save "/Users/eloiseburtis/Desktop/metadata_10_15.dta", replace
+
+//Prepare metadata data for merging
+rename filename_sec filename
+save "/Users/eloiseburtis/Desktop/metadata_10_15.dta", replace
+bysort filename: gen count =_N
+tab count
+drop count
+
+
+//Merge metadata to corpus
+clear 
+use "/Users/eloiseburtis/Desktop/metadata_10_15.dta"
+merge 1:1 filename using "/Users/eloiseburtis/Desktop/lp_total.dta"
+drop if _merge==2
+drop _merge
+save "/Users/eloiseburtis/Desktop/lp_compustat.dta",replace

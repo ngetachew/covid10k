@@ -1,0 +1,68 @@
+//Script used to merge the earnings call transcripts to the corpus
+
+//Import in csv of ECT Metadata that Michelle L. pulled out of JSON dictionary, save as a dta file
+clear
+import delimited "/Users/eloiseburtis/Desktop/Research/Covid10K/Metadata/ECT Metadata (Unmerged)/earnings_calls_metadata_2-14-22.csv", varnames(1)
+save "/Users/eloiseburtis/Desktop/Research/Covid10K/Metadata/earnings_calls_metadata_2-14-22.dta", replace
+
+br if quarter == "" //manually pulled out quarter info in the same format as the regex did for the 126 files that did not have a quarter, only did so if it was possible
+
+//checked the data for unique ticker quarter combinations
+bysort ticker quarter: gen count =_N
+tab count
+
+//looked through those that are not unique, no systematic reason which can be exploited to save them, only major loss appears to be Pfizer's Q2 2019 ECT
+br if count != 1
+
+//dropped 197 observations
+drop if count != 1
+
+save "/Users/eloiseburtis/Desktop/Research/Covid10K/Metadata/earnings_calls_metadata_CLEANED_2-14-22.dta", replace
+
+//Open up the merged metadata to check for unique combos of values and prep it for this merge.
+use "/Users/eloiseburtis/Desktop/Research/Covid10K/Metadata Proportions Merge/metadata_merged_10_15.dta"
+bysort tic_compustat datafqtr_compustat: gen count =_N
+tab count
+//dropped 18 files where there was not a unique combo of tic and financial quarter (because of financial year change midyear)
+drop if count == 2
+
+//rename variables to match on
+rename tic_compustat ric
+rename datafqtr_compustat fin_quarter
+//Save a version of this file that has the 18 drops and new variable names
+save "/Users/eloiseburtis/Desktop/Research/Covid10K/10KQ Metadata Proportions Merge/metadata_merged_10_15_ECT_CLEANED.dta", replace
+
+//reformat the financial quarter variable and ticker variables in earnings call metadata to work for merge, 
+use"/Users/eloiseburtis/Desktop/Research/Covid10K/Metadata/ECT Metadata (Unmerged)/earnings_calls_metadata_CLEANED_2-14-22.dta"
+
+//If there is no quarter we have nothing to merge on, so drop these observations
+drop if quarter == ""
+
+//generate a financial quarter variable that is appropriately formatted given the format of the Compustat data
+generate temp_quarter = substr(quarter, 1, 2)
+generate temp_year = substr(quarter, 4, 4)
+generate fin_quarter = temp_year + temp_quarter
+
+//generate a ric variable (ticker) that is appropriately formatted given the format of the Compustat data
+split ticker, parse (.)
+drop ticker2
+rename ticker1 ric
+
+//Resort the data based on unique combinations of ric and financial quarter, drop 38 observations that are not unique
+drop count
+bysort ric fin_quarter : gen count=_N
+tab count
+br if count == 2
+drop if count == 2
+
+save "/Users/eloiseburtis/Desktop/Research/Covid10K/Metadata/ECT Metadata (Unmerged)/earnings_calls_metadata_CLEANED_2-14-22.dta", replace
+
+clear
+//get space set up for merge
+use "/Users/eloiseburtis/Desktop/Research/Covid10K/10KQ Metadata Proportions Merge/metadata_merged_10_15_ECT_CLEANED.dta"
+
+
+merge 1:1 ric fin_quarter using "/Users/eloiseburtis/Desktop/Research/Covid10K/Metadata/ECT Metadata (Unmerged)/earnings_calls_metadata_CLEANED_2-14-22.dta"
+
+
+save "/Users/eloiseburtis/Desktop/Research/Covid10K/Metadata/ECT-10KQ Metadata Merge/earnings_call_10KQ_metadata_linked_2-24-22.dta", replace

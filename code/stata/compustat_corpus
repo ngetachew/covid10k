@@ -1,0 +1,141 @@
+AUTHOR: Michelle Zemel
+clear
+
+*NOTES: The SEC data is unique by cik date.  The compustat data is unique by gvkey data.  First, create a map of cik date to gvkey date. This is to add the gvkey variable to the metadata file
+
+*This data set contains all compustat quarterly records with gvkey and cik
+use "c:\users\mz004747\Box\data\Edgar SEC\cikmap_compustat_q"
+drop if substr(sic,1,1)=="6"
+drop if missing(cik)
+bysort cik datacqtr: gen count=_N
+tab count
+
+unique cik datacqtr
+keep if year(datadate) >= 2018
+drop if year(datadate) == 2018 & datacqtr != "2018Q4"
+
+disp _N
+*50,235
+save tempdata, replace
+
+*Process the metadata file to be combined with compustat. To this end, add calendar quarter (datacqtr)
+clear
+use "c:\users\mz004747\Box\Data\EDGAR SEC\metadata1921"
+tostring conformed, replace
+tostring cik, replace
+tostring date, replace
+duplicates drop
+
+keep if form=="10Q"
+
+
+gen cyear =substr(conformed,1,4)
+gen cmonth = substr(conformed,5,2)
+gen cday = substr(conformed,7,2)
+destring cmonth, replace
+destring cyear, replace
+destring cday, replace
+replace cmonth = cmonth -1 if cday <= 10 & cmonth>1
+replace cyear= cyear -1 if cday <= 10 & cmonth==1
+replace cmonth = 12 if cday <= 10 & cmonth==1
+
+
+keep if cyear >= 2018
+drop if cyear == 2018 & cmonth <= 10
+gen cqtr = 1
+replace cqtr = 2 if cmonth > 4
+replace cqtr = 3 if cmonth > 7
+replace cqtr = 4 if cmonth > 10
+replace cqtr = 4 if cmonth==1
+replace cyear = cyear - 1 if cmonth==1
+gen datacqtr = string(cyear) + "Q" + string(cqtr)
+
+gen cyear_o =substr(conformed,1,4)
+gen cmonth_o =substr(conformed,5,2)
+gen cday_o = substr(conformed,7,2)
+destring cyear_o, force replace
+destring cmonth_o, force replace
+destring cday_o, replace
+gen cdate = mdy(cmonth_o,cday_o,cyear_o)
+
+*Keep original datacqtr, will modify datacqtr at later point
+
+drop if missing(cik)
+unique  cik datacqtr
+*503 duplicates found, duplicates seem to be two (or three) submissions of report for same datadate. keep the file with the later submission date.
+
+sort cik datacqtr conformed date
+bysort cik datacqtr: gen count=_N
+bysort cik datacqtr: gen counter=_n
+tab count
+keep if count==counter
+*42,546  obs
+
+disp _N
+
+*Fix cik's for merge. CIK is a 10 digit number, fill with 0's in the beginning to yield 10 digits.
+gen tcik = "0000000" + cik
+gen len = length(tcik)
+gen cik9 = substr(tcik,len - 9,10)
+rename cik cik_sec
+rename cik9 cik
+
+*Merge in gkvey
+merge m:1 datacqtr cik using tempdata
+
+*Out of 42,543 SEC obs, 25,775 merged with compustat
+*Of the unmatched, many of these appear to be financial firms, would have to be checked systematically to confirm
+*Out of 50,235 compustat firms, 25,775 were matched
+*43.5% of these are quarters in which firms report through 10-k (there are an extra 10,676 unmatched in fiscal Q4)
+*60% are located and/or incorporated outside of US (as opposed to 32% in general compustat sample)
+
+
+keep if _merge == 3
+drop _merge
+
+*2 observations are missing fiscal quarter (datafqtr), both have fyr = 6 (fiscal year ends in june ), populated in code below
+drop tmonth tqtr tyear
+gen tmonth = month(datadate)
+gen tqtr = 3 if fyr == 6 & tmonth==3
+replace tqtr = 2 if fyr==6 & tmonth==9
+gen tyear = year(datadate)
+replace tyear = tyear + 1 if fyr==6 & tmonth==9
+gen tdatafqtr = string(tyear) + "Q" + string(tqtr)
+replace datafqtr = tdatafqtr if missing(datafqtr)
+drop tmonth tyear tqtr tdatafqtr
+tostring(date), replace
+
+keep file_name company_name cik_sec tic date conformed cik gvkey datadate cusip conm curcd exchg fic loc sic datacqtr naics fyr datafqtr cdate
+rename file_name filename_sec
+rename company_name cname_sec
+rename date date_sec
+rename conformed conformed_sec
+rename gvkey gvkey_compustat
+rename datadate datadate_compustat
+rename cusip cusip_compustat
+rename conm cname_compustat
+rename curcd curcd_compustat
+rename exchg exchg_compustat
+rename fic fic_compustat
+rename loc loc_compustat
+rename sic sic_compustat 
+rename naics naics_compustat
+rename tic tic_compustat
+rename fyr fyr_compustat
+rename datafqtr datafqtr_compustat
+
+
+gen source = "10q"
+
+gen diff = datadate_compustat - cdate
+drop if abs(diff) > 31
+
+save 10qmatched, replace
+
+
+
+
+
+
+
+rm tempdata.dta
