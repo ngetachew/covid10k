@@ -136,4 +136,4 @@ if __name__ == "__main__":
             failures = failures + 1
             counter = counter + 1
 
-    print(failures)
+    print("Number of failures: " + failures)
