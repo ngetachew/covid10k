@@ -130,7 +130,9 @@ if __name__ == "__main__":
                 break
         try:
             print(counter)
+            print("Before to_txt")
             to_txt(os.path.join(starting_dir,file), os.path.join(ending_dir,file))
+            print("After to_txt")
             counter = counter + 1
         except:
             failures = failures + 1
