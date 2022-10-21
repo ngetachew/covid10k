@@ -52,9 +52,8 @@ def get_management_from_html(file):
     # Use finditer to math the regex
     matches = regex.finditer(document['10-K'])
 
-    print("this is the length of the matches: " + str(len(matches)))
-    for match in matches:
-        print(match)
+    print("this is matches: ")
+    print(matches)
 
     # Matches
     matches = regex.finditer(document['10-K'])
@@ -133,9 +132,9 @@ if __name__ == "__main__":
         if counter >= 10:
                 break
         print(counter)
-        print("Before to_txt")
+        #print("Before to_txt")
         to_txt(os.path.join(starting_dir,file), os.path.join(ending_dir,file))
-        print("After to_txt")
+        #print("After to_txt")
         counter = counter + 1
 
         """
