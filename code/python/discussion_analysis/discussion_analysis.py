@@ -126,7 +126,7 @@ if __name__ == "__main__":
     file_names = os.listdir(starting_dir)
 
     for file in file_names:
-        if counter > 10:
+        if counter > 100:
                 break
         try:
             print(counter)
