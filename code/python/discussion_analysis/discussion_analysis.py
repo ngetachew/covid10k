@@ -14,7 +14,9 @@ def get_management_from_html(file):
 
     #open the actual file
     with open(file) as f:
-            page = f.read()
+        page = f.read()
+
+    print(file)
 
 
     # Regex to find <DOCUMENT> tags
@@ -55,7 +57,7 @@ def get_management_from_html(file):
     print("these are matches: ")
     for match in matches:
         print(match)
-    print("this is end of matches")
+    print("this is the end of matches")
 
     # Matches
     matches = regex.finditer(document['10-K'])
