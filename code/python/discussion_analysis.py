@@ -12,8 +12,6 @@ import os
 
 def get_management_from_html(file):
 
-    print(file)
-
     #open the actual file
     with open(file) as f:
             page = f.read()
@@ -53,10 +51,6 @@ def get_management_from_html(file):
 
     # Use finditer to math the regex
     matches = regex.finditer(document['10-K'])
-
-    # Write a for loop to print the matches
-    for match in matches:
-        print(match)
 
     # Matches
     matches = regex.finditer(document['10-K'])
@@ -132,11 +126,13 @@ if __name__ == "__main__":
     file_names = os.listdir(starting_dir)
 
     for file in file_names:
+        if counter > 10:
+                break
         try:
             print(counter)
-            if counter > 10:
-                break
             to_txt(os.path.join(starting_dir,file), os.path.join(ending_dir,file))
             counter += 1
         except:
             failures = failures + 1
+
+    print(failures)
