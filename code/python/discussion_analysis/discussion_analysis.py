@@ -126,8 +126,15 @@ if __name__ == "__main__":
     file_names = os.listdir(starting_dir)
 
     for file in file_names:
-        if counter > 100:
+        if counter >= 10:
                 break
+        print(counter)
+        print("Before to_txt")
+        to_txt(os.path.join(starting_dir,file), os.path.join(ending_dir,file))
+        print("After to_txt")
+        counter = counter + 1
+
+        """
         try:
             print(counter)
             print("Before to_txt")
@@ -137,5 +144,6 @@ if __name__ == "__main__":
         except:
             failures = failures + 1
             counter = counter + 1
+        """
 
     print("Number of failures: " + str(failures))
