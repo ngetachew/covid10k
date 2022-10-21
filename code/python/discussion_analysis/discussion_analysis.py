@@ -52,6 +52,9 @@ def get_management_from_html(file):
     # Use finditer to math the regex
     matches = regex.finditer(document['10-K'])
 
+    for match in matches:
+        print(match)
+
     # Matches
     matches = regex.finditer(document['10-K'])
 
