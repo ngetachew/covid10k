@@ -49,7 +49,7 @@ def get_management_from_html(file):
 
 
     # Write the regex
-    regex = re.compile(r'(>Item(\s|&#160;|&nbsp;)(7A|7)\.{0,1})|(ITEM(\s|&#160;|&nbsp;)(7A|7)\.{0,1})')
+    regex = re.compile(r'(Item(\s+|&#160;|&nbsp;)(7A|7)\.{0,1})|(ITEM(\s+|&#160;|&nbsp;)(7A|7)\.{0,1})')
 
     # Use finditer to math the regex
     matches = regex.finditer(document['10-K'])
@@ -74,6 +74,10 @@ def get_management_from_html(file):
     test_df.replace(' ','',regex=True,inplace=True)
     test_df.replace('\.','',regex=True,inplace=True)
     test_df.replace('>','',regex=True,inplace=True)
+    test_df.replace('\n','',regex=True,inplace=True)
+
+    print("THIS IS THE DATAFRAME OF MATCHES:")
+    print(test_df)
 
     if len(test_df.index > 2):
         max_len = 0
@@ -125,32 +129,56 @@ if __name__ == "__main__":
 
     counter = 0
     failures = 0
+    succeses = 0
     
+    # For 2019:
+    """
     starting_dir = "/home/CAMPUS/diaa2019/data/DATA_2019/10-K_2019"
 
     ending_dir = "/home/CAMPUS/diaa2019/data/MANAGEMENT_DISCUSSION_2019"
+    """
+
+    # For 2020:
+    starting_dir = "/home/CAMPUS/diaa2019/data/DATA_2020/10-K_2020"
+
+    ending_dir = "/home/CAMPUS/diaa2019/data/MANAGEMENT_DISCUSSION_2020"
+
+    # For 2021
+    """
+    starting_dir = "/home/CAMPUS/diaa2019/data/DATA_2021/10-K_2021"
+
+    ending_dir = "/home/CAMPUS/diaa2019/data/MANAGEMENT_DISCUSSION_2021"
+    """
 
     file_names = os.listdir(starting_dir)
 
+    failures_list = []
+
     for file in file_names:
+        """
         if counter >= 10:
-                break
+            break
+        print("COUNTER:")
         print(counter)
         #print("Before to_txt")
         to_txt(os.path.join(starting_dir,file), os.path.join(ending_dir,file))
         #print("After to_txt")
         counter = counter + 1
-
         """
+        
         try:
             print(counter)
             print("Before to_txt")
             to_txt(os.path.join(starting_dir,file), os.path.join(ending_dir,file))
             print("After to_txt")
             counter = counter + 1
+            succeses = succeses + 1
         except:
+            failures_list.append(file)
             failures = failures + 1
             counter = counter + 1
-        """
-
+        
+        
+    print(failures_list)
     print("Number of failures: " + str(failures))
+    print("Number of successes: " + str(succeses))
