@@ -49,7 +49,7 @@ def get_management_from_html(file):
 
 
     # Write the regex
-    regex = re.compile(r'(Item(\s+|&#160;|&nbsp;)(7A|7)\.{0,1})|(ITEM(\s+|&#160;|&nbsp;)(7A|7)\.{0,1})')
+    regex = re.compile(r'(Item(\s+|&#160;|&nbsp;|&#xa0;)(7A|7)\.{0,1})|(ITEM(\s+|&#160;|&nbsp;|&#xa0;)(7A|7)\.{0,1})')
 
     # Use finditer to math the regex
     matches = regex.finditer(document['10-K'])
@@ -93,6 +93,8 @@ def get_management_from_html(file):
                     max_len = row[3] - start
                     # remember the index of this section
                     end_index = row[0]
+                # regardless of if anything is found, set start to 0 again and search for the next possible section
+                start = 0
             elif row[1] == "item7":
                 start = row[2]
             # if the previous elt was a 7a and the current elt is not an item7, then set current start to 0
@@ -102,11 +104,20 @@ def get_management_from_html(file):
         # keep only the indices with the greatest distance between start and end
         test_df = test_df.iloc[end_index-1:end_index+1]
 
+    print("This is the test_df")
+    print(test_df)
+
     # Drop duplicates
     pos_dat = test_df.sort_values('start', ascending=True).drop_duplicates(subset=['item'], keep='first')
 
+    print("FIRST: This is the pos_dat:")
+    print(pos_dat)
+
     # Set item as the dataframe index
     pos_dat.set_index('item', inplace=True)
+
+    print("SECOND: This is the pos_dat:")
+    print(pos_dat)
 
     # Get Item 7
     item_7_raw = document['10-K'][pos_dat['start'].loc['item7']:pos_dat['start'].loc['item7a']]
@@ -132,16 +143,16 @@ if __name__ == "__main__":
     succeses = 0
     
     # For 2019:
-    """
     starting_dir = "/home/CAMPUS/diaa2019/data/DATA_2019/10-K_2019"
 
     ending_dir = "/home/CAMPUS/diaa2019/data/MANAGEMENT_DISCUSSION_2019"
-    """
 
     # For 2020:
+    """
     starting_dir = "/home/CAMPUS/diaa2019/data/DATA_2020/10-K_2020"
 
     ending_dir = "/home/CAMPUS/diaa2019/data/MANAGEMENT_DISCUSSION_2020"
+    """
 
     # For 2021
     """
@@ -155,28 +166,16 @@ if __name__ == "__main__":
     failures_list = []
 
     for file in file_names:
-        """
-        if counter >= 10:
-            break
-        print("COUNTER:")
-        print(counter)
-        #print("Before to_txt")
-        to_txt(os.path.join(starting_dir,file), os.path.join(ending_dir,file))
-        #print("After to_txt")
         counter = counter + 1
-        """
-        
         try:
             print(counter)
             print("Before to_txt")
             to_txt(os.path.join(starting_dir,file), os.path.join(ending_dir,file))
             print("After to_txt")
-            counter = counter + 1
             succeses = succeses + 1
         except:
             failures_list.append(file)
             failures = failures + 1
-            counter = counter + 1
         
         
     print(failures_list)
