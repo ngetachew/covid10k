@@ -10,6 +10,8 @@ import pandas as pd
 #import OS library
 import os
 
+import linecache
+
 def get_management_from_html(file):
 
     #open the actual file
@@ -18,6 +20,11 @@ def get_management_from_html(file):
 
     print(file)
 
+
+    # We want to know what date the thing was filed on
+    file_date = ''
+
+    file_date = linecache.getline(file,8)
 
     # Regex to find <DOCUMENT> tags
     doc_start_pattern = re.compile(r'<DOCUMENT>')
@@ -104,20 +111,11 @@ def get_management_from_html(file):
         # keep only the indices with the greatest distance between start and end
         test_df = test_df.iloc[end_index-1:end_index+1]
 
-    print("This is the test_df")
-    print(test_df)
-
     # Drop duplicates
     pos_dat = test_df.sort_values('start', ascending=True).drop_duplicates(subset=['item'], keep='first')
 
-    print("FIRST: This is the pos_dat:")
-    print(pos_dat)
-
     # Set item as the dataframe index
     pos_dat.set_index('item', inplace=True)
-
-    print("SECOND: This is the pos_dat:")
-    print(pos_dat)
 
     # Get Item 7
     item_7_raw = document['10-K'][pos_dat['start'].loc['item7']:pos_dat['start'].loc['item7a']]
@@ -126,6 +124,11 @@ def get_management_from_html(file):
     item_7_content = BeautifulSoup(item_7_raw, 'lxml')
 
     item_7_text = item_7_content.get_text("\n\n")
+
+    item_7_text = file_date + "\n\n" + item_7_text
+
+    print("This is file_date")
+    print(file_date)
 
     return item_7_text
 
@@ -142,23 +145,32 @@ if __name__ == "__main__":
     failures = 0
     succeses = 0
     
+    ### CHANGE THESE DIRECTORIES BACK< REMOVE TESETING!!!
+    ### CHANGE THESE DIRECTORIES BACK< REMOVE TESETING!!!
+    ### CHANGE THESE DIRECTORIES BACK< REMOVE TESETING!!!
+    ### CHANGE THESE DIRECTORIES BACK< REMOVE TESETING!!!
+    ### CHANGE THESE DIRECTORIES BACK< REMOVE TESETING!!!
+    ### CHANGE THESE DIRECTORIES BACK< REMOVE TESETING!!!
+    ### CHANGE THESE DIRECTORIES BACK< REMOVE TESETING!!!
+    ### CHANGE THESE DIRECTORIES BACK< REMOVE TESETING!!!
+
     # For 2019:
     starting_dir = "/home/CAMPUS/diaa2019/data/DATA_2019/10-K_2019"
 
-    ending_dir = "/home/CAMPUS/diaa2019/data/MANAGEMENT_DISCUSSION_2019"
+    ending_dir = "/home/CAMPUS/diaa2019/data/TESTING_MANAGEMENT"
 
     # For 2020:
     """
     starting_dir = "/home/CAMPUS/diaa2019/data/DATA_2020/10-K_2020"
 
-    ending_dir = "/home/CAMPUS/diaa2019/data/MANAGEMENT_DISCUSSION_2020"
+    ending_dir = "/home/CAMPUS/diaa2019/data/TESTING_MANAGEMENT/MANAGEMENT_DISCUSSION_2020"
     """
 
     # For 2021
     """
     starting_dir = "/home/CAMPUS/diaa2019/data/DATA_2021/10-K_2021"
 
-    ending_dir = "/home/CAMPUS/diaa2019/data/MANAGEMENT_DISCUSSION_2021"
+    ending_dir = "/home/CAMPUS/diaa2019/data/TESTING_MANAGEMENT/MANAGEMENT_DISCUSSION_2021"
     """
 
     file_names = os.listdir(starting_dir)
@@ -166,6 +178,14 @@ if __name__ == "__main__":
     failures_list = []
 
     for file in file_names:
+        # THIS IS HERE FOR TESTING. DO NOT REMOVE, YOU WILL PROBABLY NEED IT AGAIN
+        if counter > 1500:
+            break
+        
+        #to_txt(os.path.join(starting_dir,file), os.path.join(ending_dir,file))
+
+
+
         counter = counter + 1
         try:
             print(counter)
