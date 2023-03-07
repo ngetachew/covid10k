@@ -56,23 +56,23 @@ def get_management_from_html(file):
 
     # Create a loop to go through each section type and save only the 10-K section in the dictionary
     for doc_type, doc_start, doc_end in zip(doc_types, doc_start_is, doc_end_is):
-        if doc_type == '10-K':
+        if doc_type == '10-Q':
             document[doc_type] = page[doc_start:doc_end]
 
 
     # Write the regex
-    regex = re.compile(r'(Item(\s+|&#160;|&nbsp;|&#xa0;)(7A|7)\.{0,1})|(ITEM(\s+|&#160;|&nbsp;|&#xa0;)(7A|7)\.{0,1})')
+    regex = re.compile(r'(Item(\s+|&#160;|&nbsp;|&#xa0;)(2|3)\.{0,1})|(ITEM(\s+|&#160;|&nbsp;|&#xa0;)(2|3)\.{0,1})')
 
     # Use finditer to math the regex
-    matches = regex.finditer(document['10-K'])
+    matches = regex.finditer(document['10-Q'])
 
     print("these are matches: ")
     for match in matches:
         print(match)
     print("this is the end of matches")
 
-    # Matches (throws an error if I don't do it twice)
-    matches = regex.finditer(document['10-K'])
+    # Matches
+    matches = regex.finditer(document['10-Q'])
 
     # Create the dataframe
     test_df = pd.DataFrame([(x.group(), x.start(), x.end()) for x in matches])
@@ -97,8 +97,8 @@ def get_management_from_html(file):
         start = 0
 
         for row in test_df.itertuples():
-            # if this elt is item7a and the previous elt was item7 (defined by "start" not being 0)
-            if row[1] == "item7a" and start != 0:
+            # if this elt is item3 and the previous elt was item2 (defined by "start" not being 0)
+            if row[1] == "item3" and start != 0:
                 # then if the length of this section is the greatest so far
                 if (row[3] - start) > max_len:
                     # set this section to be the new max_len
@@ -107,9 +107,9 @@ def get_management_from_html(file):
                     end_index = row[0]
                 # regardless of if anything is found, set start to 0 again and search for the next possible section
                 start = 0
-            elif row[1] == "item7":
+            elif row[1] == "item2":
                 start = row[2]
-            # if the previous elt was a 7a and the current elt is not an item7, then set current start to 0
+            # if the previous elt was a 3 and the current elt is not an item2, then set current start to 0
             else:
                 start = 0
         
@@ -122,20 +122,20 @@ def get_management_from_html(file):
     # Set item as the dataframe index
     pos_dat.set_index('item', inplace=True)
 
-    # Get Item 7
-    item_7_raw = document['10-K'][pos_dat['start'].loc['item7']:pos_dat['start'].loc['item7a']]
+    # Get Item 2
+    item_2_raw = document['10-Q'][pos_dat['start'].loc['item2']:pos_dat['start'].loc['item3']]
 
     ### First convert the raw text we have to exrtacted to BeautifulSoup object 
-    item_7_content = BeautifulSoup(item_7_raw, 'lxml')
+    item_2_content = BeautifulSoup(item_2_raw, 'lxml')
 
-    item_7_text = item_7_content.get_text("\n\n")
+    item_2_text = item_2_content.get_text("\n\n")
 
-    #item_7_text = file_date + "\n\n" + company_name + "\n\n" + item_7_text
+    #item_2_text = file_date + "\n\n" + company_name + "\n\n" + item_2_text
 
     #print("This is file_date")
     #print(file_date)
 
-    return item_7_text
+    return item_2_text
 
 def to_txt(file_name, file_output):
     text = get_management_from_html(file_name)
@@ -151,28 +151,34 @@ if __name__ == "__main__":
     succeses = 0
 
     # For 2019:
-    """
-    starting_dir = "/home/CAMPUS/diaa2019/data/DATA_2019/10-K_2019"
+    starting_dir = "/home/CAMPUS/diaa2019/data/DATA_2019/10-Q_2019"
 
-    ending_dir = "/home/CAMPUS/diaa2019/data/MANAGEMENT_DISCUSSION_2019"
-    """
+    ending_dir = "/home/CAMPUS/diaa2019/data/10Q_MANAGEMENT_DISCUSSION_2019"
 
     # For 2020:
     """
-    starting_dir = "/home/CAMPUS/diaa2019/data/DATA_2020/10-K_2020"
+    starting_dir = "/home/CAMPUS/diaa2019/data/DATA_2020/10-Q_2020"
 
-    ending_dir = "/home/CAMPUS/diaa2019/data/MANAGEMENT_DISCUSSION_2020"
+    ending_dir = "/home/CAMPUS/diaa2019/data/10Q_MANAGEMENT_DISCUSSION_2020"
     """
 
     # For 2021
-    starting_dir = "/home/CAMPUS/diaa2019/data/DATA_2021/10-K_2021"
+    """
+    starting_dir = "/home/CAMPUS/diaa2019/data/DATA_2021/10-Q_2021"
 
-    ending_dir = "/home/CAMPUS/diaa2019/data/MANAGEMENT_DISCUSSION_2021"
+    ending_dir = "/home/CAMPUS/diaa2019/data/10Q_MANAGEMENT_DISCUSSION_2021"
+    """
 
     file_names = os.listdir(starting_dir)
 
     failures_list = []
 
+    file = "50172-10-Q-20190426.txt"
+
+    to_txt(os.path.join(starting_dir, file), os.path.join(ending_dir, file))
+
+
+    """
     for file in file_names:
         # THIS IS HERE FOR TESTING. DO NOT REMOVE, YOU WILL PROBABLY NEED IT AGAIN
         #if counter > 500:
@@ -191,6 +197,7 @@ if __name__ == "__main__":
         except:
             failures_list.append(file)
             failures = failures + 1
+
         
         
     print(failures_list)
@@ -200,9 +207,11 @@ if __name__ == "__main__":
 
     df = pd.DataFrame(failures_list, columns = ['doc_name'])
 
-    #df.to_csv('/home/CAMPUS/diaa2019/covid10k/code/python/discussion_analysis/2019_fails.csv')
-    #df.to_csv('/home/CAMPUS/diaa2019/covid10k/code/python/discussion_analysis/2020_fails.csv')
-    df.to_csv('/home/CAMPUS/diaa2019/covid10k/code/python/discussion_analysis/2021_fails.csv')
+    df.to_csv('/home/CAMPUS/diaa2019/covid10k/code/python/discussion_analysis/10Q_2019_fails.csv')
+    #df.to_csv('/home/CAMPUS/diaa2019/covid10k/code/python/discussion_analysis/10Q_2020_fails.csv')
+    #df.to_csv('/home/CAMPUS/diaa2019/covid10k/code/python/discussion_analysis/10Q_2021_fails.csv')
+
+    """
 
 
 
